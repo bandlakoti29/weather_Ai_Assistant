@@ -1,0 +1,9 @@
+langchain
+langchain-groq
+langchain-google-genai
+langchain_community
+langchain_core
+python-dotenv
+streamlit
+requests
+langchain-memory
