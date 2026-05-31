@@ -11,17 +11,15 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# 🔥 LLM (you can switch to Gemini if needed)
 llm = ChatGroq(
     groq_api_key=os.getenv("GROQ_API_KEY"),
     model="openai/gpt-oss-120b",
     max_retries = 2
 )
 
-# 🧰 Tools
+
 tools = [get_weather, get_forecast, convert_c_to_f]
 
-# 🤖 Agent
 agent = create_agent(
     model=llm,
     tools=tools,
@@ -52,47 +50,39 @@ Your job is to act like a weather API chatbot.
 """
 )
 
-# 🧠 Manual Memory
+
 chat_history = []
 
-# 🔍 Smart city extractor
+
 def extract_city(query: str) -> str:
     match = re.search(r"in ([A-Za-z ]+)", query)
     if match:
         return match.group(1).strip()
-    return query.split()[-1]  # fallback
+    return query.split()[-1] 
 
 
-# 🧠 Intelligence Layer
 def intelligent_response(query: str):
     global chat_history
 
-    # Add user message
     chat_history.append(HumanMessage(content=query))
 
-    # Invoke agent
     response = agent.invoke({
         "messages": chat_history
     })
 
-    # 🧠 Handle response safely
     msg = response["messages"][-1].content
 
-    # Handle Gemini structured output
     if isinstance(msg, list):
         output = msg[0]["text"]
     else:
         output = msg
 
-    # 🚨 FALLBACK FIX (CRITICAL)
     if "cannot fetch" in output.lower() or "sorry" in output.lower():
         city = extract_city(query)
         output = get_weather.run(city)
 
-    # Add AI response to memory
     chat_history.append(AIMessage(content=output))
 
-    # 🔥 Smart suggestions
     if "°C" in output:
         try:
             temp = float([s for s in output.split() if "°C" in s][0].replace("°C", ""))
