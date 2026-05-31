@@ -3,16 +3,15 @@ import os
 from langchain.tools import tool
 from functools import lru_cache
 
-# ✅ Base URLs (CLEAN — no placeholders)
+
 WEATHER_URL = "https://api.openweathermap.org/data/2.5/weather"
 FORECAST_URL = "https://api.openweathermap.org/data/2.5/forecast"
 
 
-# ✅ Cache Function (fixed)
 @lru_cache(maxsize=100)
 def fetch_data(url, params_tuple):
     try:
-        params = dict(params_tuple)  # convert tuple → dict
+        params = dict(params_tuple)  
         response = requests.get(url, params=params, timeout=10)
         response.raise_for_status()
         return response.json()
@@ -20,7 +19,6 @@ def fetch_data(url, params_tuple):
         return {"error": str(e)}
 
 
-# 🌦️ Current Weather Tool
 @tool
 def get_weather(city: str) -> str:
     """Get current weather details of a city"""
@@ -33,11 +31,10 @@ def get_weather(city: str) -> str:
 
     data = fetch_data(WEATHER_URL, tuple(params.items()))
 
-    # ❌ API error
+   
     if "error" in data:
         return f"Error: {data['error']}"
 
-    # ❌ City not found / API issue
     if data.get("cod") != 200:
         return f"Error: {data.get('message')}"
 
@@ -50,7 +47,6 @@ Weather: {data['weather'][0]['description']}
 """
 
 
-# 📅 Forecast Tool
 @tool
 def get_forecast(city: str) -> str:
     """Get 5-day weather forecast of a city"""
@@ -63,11 +59,9 @@ def get_forecast(city: str) -> str:
 
     data = fetch_data(FORECAST_URL, tuple(params.items()))
 
-    # ❌ API error
     if "error" in data:
         return f"Error: {data['error']}"
 
-    # ❌ City/API issue
     if data.get("cod") != "200":
         return f"Error: {data.get('message')}"
 
@@ -80,7 +74,6 @@ def get_forecast(city: str) -> str:
     return result
 
 
-# 🌡️ Conversion Tool
 @tool
 def convert_c_to_f(temp: float) -> str:
     """Convert Celsius to Fahrenheit"""
